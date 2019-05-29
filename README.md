@@ -29,5 +29,4 @@ It is mandatory to send the device in the callback payload. Other optional value
     "temperature" : {customData#temp},
     "humidity" : {customData#hum}
  }
-``
-
+```
