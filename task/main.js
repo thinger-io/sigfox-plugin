@@ -144,8 +144,8 @@ function handleCallback(req, res) {
     });
 }
 
-app.pohandleCallbackst('/callback', function (req, res) {
-    (req, res);
+app.post('/callback', function (req, res) {
+    handleCallback(req, res);
 });
 
 app.put('/settings', function (req, res) {
