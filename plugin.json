@@ -1,6 +1,6 @@
 {
   "name" : "sigfox",
-  "version" : "1.0.2",
+  "version" : "1.0.0",
   "description" : "Plugin for handling Sigfox integration",
   "author" : "Alvaro Luis Bustamante",
   "license" : "MIT",
@@ -11,7 +11,7 @@
   "metadata" : {
     "name" : "Sigfox",
     "description" : "Sigfox Integration",
-    "image" : "https://user-images.githubusercontent.com/1141353/58571038-5017e200-8239-11e9-86f4-de1f0922d199.png",
+    "image" : "https://user-images.githubusercontent.com/1141353/58866047-00616c80-86b8-11e9-9fe2-ef171c54ec8f.jpg",
     "icon" : "https://user-images.githubusercontent.com/1141353/58574249-d7685400-823f-11e9-81bf-1fdaa18b9548.png",
     "color": "#006DB6"
   },
