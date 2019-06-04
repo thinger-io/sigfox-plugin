@@ -16,35 +16,37 @@ function getDeviceId(deviceId){
     return settings.device_id_prefix ? settings.device_id_prefix + deviceId : deviceId;
 }
 
-function getBucketId(bucketId){
-    return settings.bucket_id_prefix ? settings.bucket_id_prefix + bucketId : bucketId;
+function getBucketId(deviceId){
+    return settings.bucket_id_prefix ? settings.bucket_id_prefix + deviceId : deviceId;
 }
 
 function getDeviceTimeout(){
     return settings.device_connection_timeout ? settings.device_connection_timeout : 10;
 }
 
-function createDevice(deviceId) {
+async function createDevice(deviceId) {
+    console.log(`Creating device: ${deviceId}`);
     return axios({
         method: 'post',
         url: `http://${HOST}/v1/users/${USER}/devices`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
         data: {
-            device_id: getDeviceId(deviceId),
+            device_id: deviceId,
             device_type: 'HTTP',
             device_description: 'Auto provisioned Sigfox Device'
         }
     });
 }
 
-function createBucket(bucketId) {
+async function createBucket(bucketId) {
+    console.log(`Creating device bucket: ${bucketId}`);
     return axios({
         method: 'post',
         url: `http://${HOST}/v1/users/${USER}/buckets`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
         data: {
-            bucket: getBucketId(bucketId),
-            name: getBucketId(bucketId),
+            bucket: bucketId,
+            name: bucketId,
             description: 'Auto provisioned Sigfox Bucket',
             enabled: true,
             source: 'api'
@@ -52,14 +54,15 @@ function createBucket(bucketId) {
     });
 }
 
-function setDeviceCallback(deviceId, bucketId) {
+async function setDeviceCallback(deviceId, writeBucketId) {
+    console.log(`Setting device callback: ${deviceId}`);
     return axios({
         method: 'put',
         url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/callback`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
         data: {
             actions: {
-                write_bucket: getBucketId(bucketId)
+                write_bucket: writeBucketId
             },
             properties: {
                 timeout: getDeviceTimeout()
@@ -68,84 +71,70 @@ function setDeviceCallback(deviceId, bucketId) {
     });
 }
 
-function callDeviceCallback(deviceId, payload) {
-    let device_id = getDeviceId(deviceId);
+async function callDeviceCallback(deviceId, payload) {
+    console.log(`Calling device callback: ${deviceId}`);
     return axios({
         method: 'post',
-        url: `http://${HOST}/v3/users/${USER}/devices/${device_id}/callback`,
+        url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/callback`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
         data: payload
     });
 }
 
-function setDeviceProperties(deviceId, properties) {
-    let device_id = getDeviceId(deviceId);
+async function setDeviceProperties(deviceId, properties) {
     return axios({
         method: 'post',
-        url: `http://${HOST}/v3/users/${USER}/devices/${device_id}/properties`,
+        url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/properties`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
         data: properties
     });
 }
 
-function getPluginProperty(property) {
+async function getPluginProperty(property) {
     return axios({
         url: `http://${HOST}/v1/users/${USER}/plugins/${PLUGIN}/properties/${property}`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
     });
 }
 
-function handleCallback(req, res) {
-    console.log("callback received");
-    console.log(req.body);
+async function manageDeviceCallback(deviceId, payload) {
+    console.log(`Managing device callback: ${deviceId}`);
+    console.log(payload);
+    return new Promise(function (resolve, reject) {
+        // call device callback with payload fields
+        callDeviceCallback(getDeviceId(deviceId), payload)
+            .then(resolve)
+            .catch(function (error) {
+                if (error.response) {
+                    // no auto provision
+                    if (!settings.auto_provision_resources) return resolve();
 
-    let device_id = req.body.device;
-
-    // call device callback with payload fields
-    callDeviceCallback(device_id, req.body).then(function (response) {
-        res.sendStatus(200);
-
-        let properties = [];
-
-        // set device properties (if any)
-        if (properties.length > 0) {
-            setDeviceProperties(device_id, properties);
-        }
-    }).catch(function (error) {
-        if (error.response) {
-            // the device does not exists
-            if (error.response.status !== 400) {
-                return res.sendStatus(error.response.status);
-            }
-
-            // no auto provision
-            if (!settings.auto_provision_resources)
-                return res.sendStatus(200);
-
-            // provision resources and call device callback
-            createDevice(device_id).then(function (response) {
-                createBucket(device_id).then(function (response) {
-                    setDeviceCallback(device_id, device_id).then(function (response) {
-                        handleCallback(req, res);
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
-                }).catch(function (error) {
+                    // create device, bucket, and set callback
+                    createDevice(getDeviceId(deviceId))
+                        .then(() => createBucket(getBucketId(deviceId)))
+                        .then(() => setDeviceCallback(getDeviceId(deviceId), getBucketId(deviceId)))
+                        .then(() => manageDeviceCallback(deviceId, payload))
+                        .then(resolve)
+                        .catch(reject);
+                } else if (error.request) {
+                    console.error(error.request);
+                } else {
                     console.error(error);
-                });
-            }).catch(function (error) {
-                console.error(error);
+                }
+
             });
-        } else if (error.request) {
-            console.error(error.request);
-        } else {
-            console.error(error);
-        }
     });
 }
 
-app.post('/callback', function (req, res) {
-    handleCallback(req, res);
+app.post('/callback/:deviceId([0-9a-fA-F]+)', function (req, res) {
+    manageDeviceCallback(req.params.deviceId, req.body)
+        .then(function () {
+            res.sendStatus(200);
+        })
+        .catch(function(error) {
+            console.error(error);
+            return res.sendStatus(500);
+        });
 });
 
 app.put('/settings', function (req, res) {
@@ -171,4 +160,5 @@ app.listen(3000, function () {
         settings.auto_provision_resources = true;
         console.error(error);
     });
+
 });
