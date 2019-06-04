@@ -36,13 +36,22 @@
                             </div>
                         </div>
                     </uib-tab>
-                    <uib-tab heading="Sigfox Integration">
-                        <div class="font-bold m-b-xs"><i class="fa fa-link"></i> Method</div>
-                        <pre class="bg-black text-white">POST</pre>
-                        <div class="font-bold m-b-xs"><i class="fa fa-link"></i> URL</div>
+                    <uib-tab heading="DATA UPLINK/BIDIR">
+                        <div class="font-bold m-b-xs"><i class="fa fa-link"></i> URL Pattern</div>
                         <pre class="bg-black text-white">{{plugin.taskUrl}}/callback</pre>
-                        <div class="font-bold m-b-xs"><i class="fa fa-lock"></i> Authorization Header</div>
-                        <pre class="bg-black text-white">Bearer {{sigfox_plugin_callback}} </pre>
+                        <div class="font-bold m-b-xs"><i class="fa fa-link"></i>HTTP Method</div>
+                        <pre class="bg-black text-white">POST</pre>
+                        <div class="font-bold m-b-xs"><i class="fa fa-lock"></i>Authorization Header</div>
+                        <pre class="bg-black text-white">Bearer {{sigfox_plugin_callback}}</pre>
+                        <div class="font-bold m-b-xs"><i class="fa fa-lock"></i> Content-Type</div>
+                        <pre class="bg-black text-white">application/json</pre>
+                        <div class="font-bold m-b-xs"><i class="fa fa-code"></i> Sample Body</div>
+                        <pre class="bg-black text-info">{
+                            "device" : "{device}",
+                            "time" : {time},
+                            "temperature" : {customData#temp},
+                            "humidity" : {customData#hum}
+                         }</pre>
                     </uib-tab>
                 </uib-tabset>
             </form>
