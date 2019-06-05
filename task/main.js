@@ -124,8 +124,8 @@ async function manageDeviceCallback(deviceId, payload, sourceIP, timestamp) {
 app.post('/device/:deviceId([0-9a-fA-F]+)/callback', function (req, res) {
     console.log(req.originalUrl);
 
-    let sourceIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    let originTimestamp = req.param('ts', 0) * 1000; // thinger.io expects milliseconds
+    let sourceIP = req.headers['X-Forwarded-For'] || req.connection.remoteAddress;
+    let originTimestamp = req.params.ts * 1000 || 0; // thinger.io expects milliseconds
 
     manageDeviceCallback(req.params.deviceId, req.body, sourceIP, originTimestamp)
         .then(function () {
