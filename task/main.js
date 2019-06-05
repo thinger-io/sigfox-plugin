@@ -3,6 +3,7 @@ const axios = require('axios');
 const app = express();
 
 app.use(express.json());
+app.enable('trust proxy');
 
 const HOST      = process.env.THINGER_HOST;
 const USER      = process.env.THINGER_USER;
