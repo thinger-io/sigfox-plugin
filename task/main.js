@@ -160,5 +160,4 @@ app.listen(3000, function () {
         settings.auto_provision_resources = true;
         console.error(error);
     });
-
 });
