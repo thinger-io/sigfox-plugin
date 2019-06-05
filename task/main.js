@@ -77,7 +77,7 @@ async function callDeviceCallback(deviceId, payload, sourceIP, timestamp) {
         method: 'post',
         url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/callback`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
-        query: {
+        params: {
             ts: timestamp,
             ip: sourceIP
         },
