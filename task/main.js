@@ -126,7 +126,7 @@ async function manageDeviceCallback(deviceId, payload) {
     });
 }
 
-app.post('/callback/:deviceId([0-9a-fA-F]+)', function (req, res) {
+app.post('/device/:deviceId([0-9a-fA-F]+)/data', function (req, res) {
     manageDeviceCallback(req.params.deviceId, req.body)
         .then(function () {
             res.sendStatus(200);
