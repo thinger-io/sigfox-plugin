@@ -138,9 +138,10 @@ app.post('/callback/:deviceId([0-9a-fA-F]+)', function (req, res) {
 });
 
 app.put('/settings', function (req, res) {
-    settings = req.body;
     console.log("settings updated");
     console.log(settings);
+    settings = req.body;
+    res.sendStatus(200);
 });
 
 app.listen(3000, function () {
