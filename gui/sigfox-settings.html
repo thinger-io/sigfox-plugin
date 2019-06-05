@@ -38,7 +38,7 @@
                     </uib-tab>
                     <uib-tab heading="Callback Config">
                         <div class="font-bold m-b-xs"><i class="fa fa-link"></i> URL Pattern</div>
-                        <pre class="bg-black text-white">{{plugin.taskUrl}}/device/{device}/data</pre>
+                        <pre class="bg-black text-white">{{plugin.taskUrl}}/device/{device}/callback?ts={time}</pre>
                         <div class="font-bold m-b-xs"><i class="fa fa-link"></i> HTTP Method</div>
                         <pre class="bg-black text-white">POST</pre>
                         <div class="font-bold m-b-xs"><i class="fa fa-lock"></i> Authorization Header</div>
@@ -48,7 +48,8 @@
                         <div class="font-bold m-b-xs"><i class="fa fa-code"></i> Sample Body</div>
                         <pre class="bg-black text-info">{
     "temperature" : {customData#temp},
-    "humidity" : {customData#hum}}</pre>
+    "humidity" : {customData#hum}
+}</pre>
                     </uib-tab>
                 </uib-tabset>
             </form>

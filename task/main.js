@@ -4,11 +4,11 @@ const app = express();
 
 app.use(express.json());
 
-const HOST = process.env.THINGER_HOST;
-const USER = process.env.THINGER_USER;
-const PLUGIN = process.env.THINGER_PLUGIN;
-const VERSION = process.env.THINGER_PLUGIN_VERSION;
-const TOKEN = process.env.THINGER_TOKEN_SIGFOX_PLUGIN;
+const HOST      = process.env.THINGER_HOST;
+const USER      = process.env.THINGER_USER;
+const PLUGIN    = process.env.THINGER_PLUGIN;
+const VERSION   = process.env.THINGER_PLUGIN_VERSION;
+const TOKEN     = process.env.THINGER_TOKEN_SIGFOX_PLUGIN;
 
 let settings = {};
 
@@ -71,22 +71,17 @@ async function setDeviceCallback(deviceId, writeBucketId) {
     });
 }
 
-async function callDeviceCallback(deviceId, payload) {
+async function callDeviceCallback(deviceId, payload, sourceIP, timestamp) {
     console.log(`Calling device callback: ${deviceId}`);
     return axios({
         method: 'post',
         url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/callback`,
         headers: {"Authorization": `Bearer ${TOKEN}`},
+        query: {
+            ts: timestamp,
+            ip: sourceIP
+        },
         data: payload
-    });
-}
-
-async function setDeviceProperties(deviceId, properties) {
-    return axios({
-        method: 'post',
-        url: `http://${HOST}/v3/users/${USER}/devices/${deviceId}/properties`,
-        headers: {"Authorization": `Bearer ${TOKEN}`},
-        data: properties
     });
 }
 
@@ -97,15 +92,15 @@ async function getPluginProperty(property) {
     });
 }
 
-async function manageDeviceCallback(deviceId, payload) {
+async function manageDeviceCallback(deviceId, payload, sourceIP, timestamp) {
     console.log(`Managing device callback: ${deviceId}`);
     console.log(payload);
     return new Promise(function (resolve, reject) {
         // call device callback with payload fields
-        callDeviceCallback(getDeviceId(deviceId), payload)
+        callDeviceCallback(getDeviceId(deviceId), payload, sourceIP, timestamp)
             .then(resolve)
             .catch(function (error) {
-                if (error.response) {
+                if (error.response && error.response.status===404 || error.response.status===400) {
                     // no auto provision
                     if (!settings.auto_provision_resources) return resolve();
 
@@ -113,7 +108,7 @@ async function manageDeviceCallback(deviceId, payload) {
                     createDevice(getDeviceId(deviceId))
                         .then(() => createBucket(getBucketId(deviceId)))
                         .then(() => setDeviceCallback(getDeviceId(deviceId), getBucketId(deviceId)))
-                        .then(() => manageDeviceCallback(deviceId, payload))
+                        .then(() => callDeviceCallback(getDeviceId(deviceId), payload, sourceIP, timestamp))
                         .then(resolve)
                         .catch(reject);
                 } else if (error.request) {
@@ -126,8 +121,13 @@ async function manageDeviceCallback(deviceId, payload) {
     });
 }
 
-app.post('/device/:deviceId([0-9a-fA-F]+)/data', function (req, res) {
-    manageDeviceCallback(req.params.deviceId, req.body)
+app.post('/device/:deviceId([0-9a-fA-F]+)/callback', function (req, res) {
+    console.log(req.originalUrl);
+
+    let sourceIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    let originTimestamp = req.param('ts', 0) * 1000; // thinger.io expects milliseconds
+
+    manageDeviceCallback(req.params.deviceId, req.body, sourceIP, originTimestamp)
         .then(function () {
             res.sendStatus(200);
         })
