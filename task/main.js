@@ -184,10 +184,10 @@ async function getPluginProperty(property) {
     });
 }
 
-function getSigfoxDownlinkData(deviceId, data){
+function getSigfoxDownlinkData(deviceId, data, deviceType){
     let downlink = {};
     downlink[deviceId] = {
-        downlinkData: run_callback(data, 'downlink')
+        downlinkData: run_callback(data, 'downlink', deviceType)
     };
     return downlink;
 }
@@ -197,7 +197,7 @@ function handelDeviceCallbackRequest(res, deviceId, deviceType, payload, sourceI
     handleDeviceCallback(deviceId, deviceType, payload, sourceIP, timestamp)
     .then(function(response) {
         if(response.data){
-            res.status(response.status).send(getSigfoxDownlinkData(deviceId, response.data));
+            res.status(response.status).send(getSigfoxDownlinkData(deviceId, response.data, deviceType));
         }else{
             res.sendStatus(response.status);
         }
