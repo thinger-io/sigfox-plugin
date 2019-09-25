@@ -20,7 +20,7 @@
                                 <select class="form-control" name="type" ng-model="ui.selectedDeviceType">
                                     <option value="{{deviceType}}" ng-repeat="(deviceType, value) in settings.value">{{deviceType}}</option>
                                 </select>
-                                <button type="button" class="btn btn-sm btn-danger btn-addon m-t-sm m-b" ng-click="removeDeviceType(ui.deviceType)" ng-show="ui.selectedDeviceType!=='Default'"><i class="fa fa-minus"></i>Remove Device Type</button>
+                                <button type="button" class="btn btn-sm btn-danger btn-addon m-t-sm m-b" ng-click="removeDeviceType(ui.selectedDeviceType)" ng-show="ui.selectedDeviceType!=='Default'"><i class="fa fa-minus"></i>Remove Device Type</button>
                             </div>
                         </div>
 
