@@ -8,12 +8,12 @@ const TOKEN     = process.env.THINGER_TOKEN_SIGFOX_PLUGIN;
 const axios = require('axios');
 axios.defaults.baseURL = 'http://' + HOST;
 axios.defaults.headers.common['Authorization'] = 'Bearer ' + TOKEN;
-axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 // configure express
 const express = require('express');
 const app = express();
-app.use(express.json());
+app.use(express.json({strict: false, limit: '8mb'}));
 app.enable('trust proxy');
 
 // configure vm2
@@ -38,7 +38,7 @@ function getDeviceType(deviceType){
 }
 
 function getSettings(deviceType){
-    return settings[deviceType];
+    return settings[deviceType] || settings['Default'];
 }
 
 function getDeviceId(deviceId, settings){
@@ -93,8 +93,10 @@ function run_callback(data, callback, deviceType){
     let settings = getSettings(deviceType);
     if(!settings || data===undefined || settings.script===undefined || settings.script[callback]===undefined) return data;
     try {
-        console.log('running callback: ' + callback);
-        return settings.script[callback](data);
+        console.log('running callback: ' + callback + ' for: ' + deviceType);
+        let result =  settings.script[callback](data);
+        console.log('converted data:', JSON.stringify(result));
+        return result;
     } catch (err) {
         console.error('failed to execute ' + callback + ' script.', err);
         return data;
@@ -228,10 +230,10 @@ async function handleDeviceCallback(deviceId, deviceType, payload, sourceIP, tim
         .then((response) => { resolve(response); })
         .catch(function (error) {
             // device is not yet created?
-            if (payload!==undefined && (error.response && error.response.status===404 || error.response.status===400)) {
+            if (payload!==undefined && (error.response && error.response.status===404)) {
 
                 // no auto provision
-                if (!settings.auto_provision_resources) return resolve();
+                if (!settings.auto_provision_resources) return reject(error);
 
                 // create device, bucket, and set callback
                 let realBucketId = getBucketId(deviceId, settings);
@@ -279,13 +281,15 @@ app.post('/run_callback', function (req, res) {
     // get callback type
     let fn =  req.query.fn ? req.query.fn : 'uplink';
 
+    console.log('running callback:', fn);
+
     // get device type
     let deviceType = getDeviceType(req.query.deviceType);
 
     try {
         let settings = getSettings(deviceType);
         if(settings && settings.script && settings.script[fn]){
-            res.send(settings.script[fn](req.body));
+            res.json(settings.script[fn](req.body));
         }else{
             res.status(500).send({error: {message: 'script or function ' + fn + ' not defined'}});
         }
@@ -319,7 +323,10 @@ app.listen(3000, function () {
         compileCallbacks();
     }).catch(function (error) {
         console.error("plugin settings not available");
-        settings = {};
-        settings.auto_provision_resources = true;
+        settings = {
+            'Default' : {
+                auto_provision_resources : true
+            }
+        };
     });
 });

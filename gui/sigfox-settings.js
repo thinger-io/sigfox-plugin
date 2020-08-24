@@ -45,7 +45,7 @@ angular.module('SigfoxPlugin', ['uiAce'])
                     },function error(error){
                         showError(error);
                     });
-                }
+                };
 
                 $scope.save = function(){
                     $scope.save_state = 1;
@@ -70,12 +70,12 @@ angular.module('SigfoxPlugin', ['uiAce'])
                         initSettings(deviceType);
                         $scope.ui.selectedDeviceType = deviceType;
                     }
-                }
+                };
 
                 $scope.removeDeviceType = function(deviceType){
                     delete $scope.settings.value[deviceType];
                     $scope.ui.selectedDeviceType = 'Default';
-                }
+                };
 
                 function showError(response){
                     console.error(response);
