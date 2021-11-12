@@ -293,7 +293,7 @@ app.post('/run_callback', function (req, res) {
     try {
         let settings = getSettings(deviceType);
         if(settings && settings.script && settings.script[fn]){
-            res.json(settings.script[fn](req.body));
+            res.json(settings.script[fn](req.body, {device: 'abcde12345'}));
         }else{
             res.status(500).send({error: {message: 'script or function ' + fn + ' not defined'}});
         }
