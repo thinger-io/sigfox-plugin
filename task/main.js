@@ -89,12 +89,12 @@ function compileCallbacks(stopOnError) {
     return true;
 }
 
-function run_callback(data, callback, deviceType){
+function run_callback(data, callback, deviceType, meta){
     let settings = getSettings(deviceType);
     if(!settings || data===undefined || settings.script===undefined || settings.script[callback]===undefined) return data;
     try {
         console.log('running callback: ' + callback + ' for: ' + deviceType);
-        let result =  settings.script[callback](data);
+        let result =  settings.script[callback](data, meta);
         console.log('converted data:', JSON.stringify(result));
         return result;
     } catch (err) {
@@ -103,18 +103,22 @@ function run_callback(data, callback, deviceType){
     }
 }
 
-async function createHTTPDevice(deviceId) {
-    console.log(`creating device: ${deviceId}`);
+async function createHTTPDevice(deviceId, deviceName, deviceDescription, settings) {
+    let data = {
+        device: deviceId,
+        name: deviceName,
+        type: 'HTTP',
+        description: deviceDescription
+    };
+    if(settings.assign_asset_type) data.asset_type = settings.assign_asset_type;
+    if(settings.assign_asset_group) data.asset_group = settings.assign_asset_group;
+    console.log(`creating device: ${JSON.stringify(data)}`);
     return axios({
         method: 'post',
         url: `/v1/users/${USER}/devices`,
-        data: {
-            device: deviceId,
-            type: 'HTTP',
-            description: 'Auto provisioned Sigfox Device'
-        }
+        data: data
     });
-}
+};
 
 async function createBucket(bucketId){
     console.log(`creating device bucket: ${bucketId}`);
@@ -189,7 +193,7 @@ async function getPluginProperty(property) {
 function getSigfoxDownlinkData(deviceId, data, deviceType){
     let downlink = {};
     downlink[deviceId] = {
-        downlinkData: run_callback(data, 'downlink', deviceType)
+        downlinkData: run_callback(data, 'downlink', deviceType, {device: deviceId})
     };
     return downlink;
 }
@@ -237,7 +241,7 @@ async function handleDeviceCallback(deviceId, deviceType, payload, sourceIP, tim
 
                 // create device, bucket, and set callback
                 let realBucketId = getBucketId(deviceId, settings);
-                createHTTPDevice(realDeviceId)
+                createHTTPDevice(realDeviceId, deviceId, 'Auto provisioned Sigfox Device', settings)
                     .then(() => setDeviceDownlinkData(realDeviceId, getDefaultDownlink(settings)))
                     .then(() => createBucket(realBucketId))
                     .then(() => setDeviceCallback(realDeviceId, realBucketId, settings))
@@ -261,7 +265,7 @@ app.post('/device/:deviceId([0-9a-fA-F]+)/callback', function (req, res) {
     let deviceType = getDeviceType(req.query.deviceType);
 
     // process payload
-    let payload = run_callback(req.body, 'uplink', deviceType);
+    let payload = run_callback(req.body, 'uplink', deviceType, {device: req.params.deviceId});
 
     // handle request
     handelDeviceCallbackRequest(res, req.params.deviceId, deviceType, payload, req.ip, timestamp);
