@@ -38,7 +38,7 @@
     "axios": "^0.24.0",
     "express": "^4.17.1",
     "log-timestamp": "^0.3.0",
-    "vm2": "^3.9.5"
+    "vm2": "^3.9.6"
   },
   "devDependencies": {
     "cross-conf-env": "^1.2.1",
