@@ -10,10 +10,6 @@ Thinger.io plugin for handling Sigfox integration.
 * Insert new data points in the corresponding data bucket.
 * Update device location in the console if "latitude" and "longitude" fields are set in the callback call.
 
-## Screenshoots
-
-### Callback Processing
-
 ### Sigfox Integration
 
 It is mandatory to send the device in the callback payload. Other optional values are signal or location information extracted from Sigfox. 
