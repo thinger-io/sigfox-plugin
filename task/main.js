@@ -113,20 +113,25 @@ async function createHTTPDevice(deviceId, deviceName, deviceDescription, setting
     };
     if(settings.assign_asset_type) data.asset_type = settings.assign_asset_type;
     if(settings.assign_asset_group) data.asset_group = settings.assign_asset_group;
-    if(settings.assign_project) data.project = [`${USER}@` + settings.assign_project];
     console.log(`creating device: ${JSON.stringify(data)}`);
     return axios({
         method: 'post',
         url: `/v1/users/${USER}/devices`,
+        params: {
+            project: settings.assign_project
+        },
         data: data
     });
 };
 
-async function createBucket(bucketId){
+async function createBucket(bucketId, settings){
     console.log(`creating device bucket: ${bucketId}`);
     return axios({
         method: 'post',
         url: `/v1/users/${USER}/buckets`,
+        params: {
+            project: settings.assign_project
+        },
         data: {
             bucket: bucketId,
             name: bucketId,
@@ -245,7 +250,7 @@ async function handleDeviceCallback(deviceId, deviceType, payload, sourceIP, tim
                 let realBucketId = getBucketId(deviceId, settings);
                 createHTTPDevice(realDeviceId, deviceId, 'Auto provisioned Sigfox Device', settings)
                     .then(() => setDeviceDownlinkData(realDeviceId, getDefaultDownlink(settings)))
-                    .then(() => createBucket(realBucketId))
+                    .then(() => createBucket(realBucketId, settings))
                     .then(() => setDeviceCallback(realDeviceId, realBucketId, settings))
                     .then(() => callDeviceCallback(realDeviceId, payload, sourceIP, timestamp))
                     .then((response) => { resolve(response); })
