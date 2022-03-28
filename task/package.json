@@ -35,10 +35,10 @@
     "docker:debug": "run-s -cs docker:open:win docker:open:mac docker:debugmessage docker:taillogs"
   },
   "dependencies": {
-    "axios": "^0.24.0",
-    "express": "^4.17.1",
+    "axios": "^0.26.1",
+    "express": "^4.17.3",
     "log-timestamp": "^0.3.0",
-    "vm2": "^3.9.5"
+    "vm2": "^3.9.9"
   },
   "devDependencies": {
     "cross-conf-env": "^1.2.1",
