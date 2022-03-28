@@ -112,6 +112,7 @@ async function createHTTPDevice(deviceId, deviceName, deviceDescription, setting
     };
     if(settings.assign_asset_type) data.asset_type = settings.assign_asset_type;
     if(settings.assign_asset_group) data.asset_group = settings.assign_asset_group;
+    if(settings.assign_project) data.project = [`${USER}@` + settings.assign_project];
     console.log(`creating device: ${JSON.stringify(data)}`);
     return axios({
         method: 'post',
