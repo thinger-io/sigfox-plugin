@@ -1,4 +1,5 @@
 const HOST      = process.env.THINGER_HOST;
+const HTTP_PORT = process.env.THINGER_HTTP_PORT || 80;
 const USER      = process.env.THINGER_USER;
 const PLUGIN    = process.env.THINGER_PLUGIN;
 const VERSION   = process.env.THINGER_PLUGIN_VERSION;
@@ -6,7 +7,7 @@ const TOKEN     = process.env.THINGER_TOKEN_SIGFOX_PLUGIN;
 
 // configure axios
 const axios = require('axios');
-axios.defaults.baseURL = 'http://' + HOST;
+axios.defaults.baseURL = 'http://' + HOST + ":" + HTTP_PORT;
 axios.defaults.headers.common['Authorization'] = 'Bearer ' + TOKEN;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
