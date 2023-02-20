@@ -1,5 +1,4 @@
-//const HOST      = process.env.THINGER_HOST;
-const HOST      = "192.168.1.140";
+const HOST      = process.env.THINGER_HOST;
 const HTTP_PORT = process.env.THINGER_HTTP_PORT || 80;
 const USER      = process.env.THINGER_USER;
 const PLUGIN    = process.env.THINGER_PLUGIN;
