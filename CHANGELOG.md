@@ -5,3 +5,4 @@
 
 ### Fixed
 - Ensure provided Sigfox device type is available instead of using default settings
+- Make sure Thinger server is running before starting service
